@@ -1,10 +1,7 @@
 package com.paypay.data.datasource.network.service
 
-import com.paypay.data.model.Currencies
 import com.paypay.data.model.CurrencyResponse
 import com.paypay.data.utils.Constants
-import kotlinx.coroutines.flow.Flow
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -21,7 +18,7 @@ interface ExchangeService {
      * @return a network response with list of currencies in json when 200
      */
     @GET(Constants.CURRENCIES)
-    suspend fun getCurrencies(): Response<ResponseBody>
+    suspend fun getCurrencies(): Response<Map<String, String>>
 
     /**
      * @author jayashankar
@@ -34,6 +31,8 @@ interface ExchangeService {
      * @return network response with currency response with all the conversions w.r.t base when 200
      */
     @GET(Constants.LATEST_DATA)
-    suspend fun getLatestRates(@Query(Constants.PARAM_APP_ID) appId: String,
-                        @Query(Constants.PARAM_BASE) base: String? = "USD"): Response<CurrencyResponse>
+    suspend fun getLatestRates(
+        @Query(Constants.PARAM_APP_ID) appId: String,
+        @Query(Constants.PARAM_BASE) base: String? = "USD"
+    ): Response<CurrencyResponse>
 }

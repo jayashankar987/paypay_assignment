@@ -2,44 +2,88 @@ package com.paypay.currencyconverter.videomodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paypay.currencyconverter.util.Result
-import com.paypay.currencyconverter.util.Result.Companion
-import com.paypay.currencyconverter.util.Status.ERROR
-import com.paypay.currencyconverter.util.Status.LOADING
-import com.paypay.currencyconverter.util.Status.SUCCESS
+import com.paypay.currencyconverter.videomodel.CurrenciesFetchState.Loading
+import com.paypay.currencyconverter.videomodel.CurrenciesFetchState.Success
 import com.paypay.framework.exchange.currency.model.CurrencyData
-import com.paypay.framework.exchange.currency.repository.converter.ICurrencyConverterRepository
-import com.paypay.framework.exchange.currency.repository.currency.ICurrencyRepository
-import kotlinx.coroutines.Dispatchers
+import com.paypay.framework.exchange.currency.repository.converter.ICurrencyConverterUsecase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@HiltViewModel
 class ExchangeCurrencyViewModel
-@Inject constructor(private val currencyConverterRepo: ICurrencyConverterRepository) : ViewModel() {
+@Inject constructor(private val currencyConverterUsecase: ICurrencyConverterUsecase) :
+    ViewModel() {
 
-    private var _uiStateFlow = MutableStateFlow<Result<List<CurrencyData>>>(Result.loading(null))
-    val uiState = _uiStateFlow.asStateFlow()
+    private var _uiStateFlow = MutableStateFlow<CurrenciesFetchState>(Success(data = emptyList()))
+    val uiState: StateFlow<CurrenciesFetchState> = _uiStateFlow
 
-    fun fetchCurrencyRates(base: String, value: Float) {
+    private var lastRequestedTime = 0L
+    private val thresholdMinutes = 5L
+    private val time: TimeUnit = TimeUnit.MINUTES
+
+    fun fetchCurrencyRates(base: String, input: Double) {
         viewModelScope.launch {
-            if(_uiStateFlow.value.status == LOADING) {
-                return@launch
-            }
-            _uiStateFlow.update { Result.loading(null) }
-            currencyConverterRepo.getConversionForAllCurrencies(base = base, input = value).flowOn(Dispatchers.Default)
-                .catch { error ->
-                    _uiStateFlow.update { Result.error(msg = error.message.toString(), data = null) }
-                }.collect { currencyList ->
-                    _uiStateFlow.update { Result.success(currencyList) }
+            _uiStateFlow.value = Loading
+            flow {
+                if (needsFetchingFromRepo()) {
+                    emit(currencyConverterUsecase.getConversionForAllCurrencies(base))
+                } else {
+                    emit(currencyConverterUsecase.fetchCachedCurrencyDetails(base))
                 }
 
-            _uiStateFlow
+            }.catch { exception ->
+                _uiStateFlow.value = CurrenciesFetchState.Error(throwable = exception)
+            }.cancellable().collect { list ->
+                lastRequestedTime = System.currentTimeMillis()
+                list.forEach {
+                    it.currencyValue = input * it.currencyValue!!
+                }
+                _uiStateFlow.value = Success(data = list)
+            }
         }
     }
+
+    fun fetchCurrencies(base: String = "USD") {
+        viewModelScope.launch {
+            _uiStateFlow.value = Loading
+            flow {
+                if (needsFetchingFromRepo()) {
+                    emit(currencyConverterUsecase.getConversionForAllCurrencies(base))
+                } else {
+                    emit(currencyConverterUsecase.fetchCachedCurrencyDetails(base))
+                }
+
+            }.catch { throwable ->
+                _uiStateFlow.value = CurrenciesFetchState.Error(throwable = throwable)
+            }.cancellable().collect { list ->
+                val currencies = mutableListOf<Pair<String, String>>()
+                list.forEach {
+                    currencies.add(Pair(it.currencyCode, it.currencyName))
+                }
+                _uiStateFlow.value = CurrenciesFetchState.Init(data = currencies)
+            }
+        }
+    }
+
+    private fun needsFetchingFromRepo(): Boolean {
+        val currentRequestTime = System.currentTimeMillis()
+        if (currentRequestTime - lastRequestedTime > time.convert(thresholdMinutes, TimeUnit.MILLISECONDS)) {
+            return true
+        }
+        return false
+    }
+}
+
+sealed class CurrenciesFetchState {
+    data class Init(val data: List<Pair<String, String>>? = null) : CurrenciesFetchState()
+    data class Error(val throwable: Throwable) : CurrenciesFetchState()
+    data class Success(val data: List<CurrencyData>) : CurrenciesFetchState()
+    object Loading : CurrenciesFetchState()
 }

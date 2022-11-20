@@ -10,7 +10,7 @@ object FrameworkConstants {
     object CurrencyDetails {
         object Column {
             const val CURRENCY_NAME = "currency_name"
-            const val CURRENCY_CODE = "currency_value"
+            const val CURRENCY_CODE = "currency_code"
             const val CURRENCY_VALUE = "currency_value"
         }
     }

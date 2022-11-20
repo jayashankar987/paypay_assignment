@@ -1,43 +1,53 @@
 package com.paypay.data.datasource.network
 
-import com.paypay.data.datasource.network.parser.IMoshiParser
 import com.paypay.data.datasource.network.service.ExchangeService
+import com.paypay.data.utils.ResultData
 import com.paypay.data.utils.Utils.isUpdateRequired
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ExchangeNetworkSource constructor(
-    private val exchangeService: ExchangeService, private val moshiParser: IMoshiParser
+    private val exchangeService: ExchangeService
 ) : IExchangeNetworkSource {
 
-    override suspend fun getCurrenciesExchangeRates(appId: String, base: String?): Flow<NetworkResponse<Any>> {
-        return flow {
+    override suspend fun getCurrenciesExchangeRates(
+        appId: String, base: String?
+    ): ResultData<Map<String, Double>, out Exception> = withContext(Dispatchers.IO) {
+        try {
             val response = exchangeService.getLatestRates(appId = appId, base = base)
+            println("called getCurrenciesExchangeRates")
+            println("jaya getCurrenciesExchangeRates $response")
             if (!isUpdateRequired(response)) {
-                emit(NetworkResponse.NoUpdateRequired)
-            } else if (response.isSuccessful && response.body()?.rates?.toString() != null) {
-                val map = moshiParser.parseCurrencyRates(response.body()?.rates?.toString())
-                emit(NetworkResponse.Success(map))
+                return@withContext (ResultData.NoUpdateRequired)
+            } else if (response.isSuccessful && response.body()?.rates != null) {
+                val map = response.body()?.rates ?: emptyMap()
+                return@withContext (ResultData.Success(map))
             } else {
                 //could have customised the Error but let me see if I can at last
-                emit(NetworkResponse.Error(Throwable("Error in fetching data")))
+                return@withContext (ResultData.Error(Exception("Error in fetching data")))
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return@withContext ResultData.Error(Exception("Error in fetching data"))
         }
     }
 
-    override suspend fun getCurrencies(): Flow<NetworkResponse<Any>> {
-        return flow {
+    override suspend fun getCurrencies(): ResultData<Map<String, String>, out Exception> = withContext(Dispatchers.IO) {
+        try {
             val response = exchangeService.getCurrencies()
-            val body = response.body().toString()
+            println("jaya getCurrencies $response")
+            val body = response.body()
             if (!isUpdateRequired(response)) {
-                emit(NetworkResponse.NoUpdateRequired)
+                return@withContext (ResultData.NoUpdateRequired)
             } else if (response.isSuccessful) {
-                val map = moshiParser.parseCurrencyRates(body)
-                emit(NetworkResponse.Success(map))
+                val map = body ?: emptyMap()
+                return@withContext (ResultData.Success(map))
             } else {
                 //could have customised the Error but let me see if I can at last
-                emit(NetworkResponse.Error(Throwable("Error in fetching data")))
+                return@withContext (ResultData.Error(Exception("Error in fetching data")))
             }
+        } catch (e: Exception) {
+            return@withContext (ResultData.Error(Exception("Error in fetching data")))
         }
     }
 }

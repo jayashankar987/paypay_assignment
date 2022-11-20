@@ -20,11 +20,28 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = false
+
+      buildConfigField(
+        "String",
+        "base_url",
+        "\"https://openexchangerates.org/api/\""
+      )
+
+      //can be improvised for security with remote config
+      buildConfigField(
+        "String",
+        "app_id",
+        "\"569da2e374854354afd5b1187144c67a\""
+      )
+    }
+
+    debug {
+      initWith(getByName("release"))
     }
   }
   compileOptions {
-    sourceCompatibility =  JavaVersion.VERSION_1_1
-    targetCompatibility = JavaVersion.VERSION_1_1
+    sourceCompatibility =  JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
   kotlinOptions {
     jvmTarget = "11"
@@ -46,7 +63,8 @@ dependencies {
   implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
   implementation("androidx.room:room-runtime:2.4.3")
-  annotationProcessor("androidx.room:room-compiler:2.4.3")
+  kapt("androidx.room:room-compiler:2.4.3")
+  implementation("androidx.room:room-ktx:2.4.3")
 
   implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
   implementation("com.squareup.moshi:moshi:1.14.0")

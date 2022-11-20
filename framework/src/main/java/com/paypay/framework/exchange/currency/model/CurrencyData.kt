@@ -10,5 +10,5 @@ import com.paypay.framework.exchange.currency.utils.FrameworkConstants.TableName
 data class CurrencyData(
     @PrimaryKey
     @ColumnInfo(name = CurrencyDetails.Column.CURRENCY_CODE) val currencyCode: String,
-    @ColumnInfo(name = CurrencyDetails.Column.CURRENCY_VALUE) val value: Double?,
+    @ColumnInfo(name = CurrencyDetails.Column.CURRENCY_VALUE) var currencyValue: Double?,
     @ColumnInfo(name = CurrencyDetails.Column.CURRENCY_NAME) val currencyName: String)

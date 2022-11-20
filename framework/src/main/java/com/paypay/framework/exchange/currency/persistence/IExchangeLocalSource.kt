@@ -4,6 +4,6 @@ import com.paypay.framework.exchange.currency.model.CurrencyData
 import kotlinx.coroutines.flow.Flow
 
 interface IExchangeLocalSource {
-    suspend fun saveCurrencyExchangeRates(currencyDataList: List<CurrencyData>): Flow<Unit>
-    suspend fun getAllCurrenciesWithExchange(): Flow<List<CurrencyData>>
+    suspend fun saveCurrencyExchangeRates(currencyDataList: List<CurrencyData>)
+    suspend fun getAllCurrenciesWithExchange(): List<CurrencyData>
 }

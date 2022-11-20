@@ -3,6 +3,7 @@ package com.paypay.framework.exchange.currency.di
 import android.content.Context
 import com.paypay.data.datasource.network.DataRetrofitClient
 import com.paypay.data.datasource.network.service.ExchangeService
+import com.paypay.framework.BuildConfig
 import com.paypay.framework.exchange.currency.network.CurrencyExchangeRetrofitClient
 import com.paypay.framework.exchange.currency.utils.FrameworkConstants
 import dagger.Module
@@ -23,7 +24,7 @@ class NetworkModule {
     @Provides
     fun providesRetrofit(@ApplicationContext applicationContext: Context): Retrofit {
         return CurrencyExchangeRetrofitClient(context = applicationContext).getDefaultRetrofit(
-            baseUrl = "sample", file = File(
+            baseUrl = BuildConfig.base_url, file = File(
                 applicationContext.cacheDir, FrameworkConstants.HTTP_CACHE
             )
         )

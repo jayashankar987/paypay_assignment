@@ -1,3 +1,11 @@
 <resources>
       <dimen name="fab_margin">16dp</dimen>
-   </resources>
+    <dimen name="margin_normal">20dp</dimen>
+    <dimen name="header4">22sp</dimen>
+    <dimen name="header3">24sp</dimen>
+    <dimen name="title">18sp</dimen>
+    <dimen name="desc">12sp</dimen>
+    <dimen name="padding_normal">8dp</dimen>
+    <dimen name="corner_radius">8dp</dimen>
+    <dimen name="button_corner_radius">16dp</dimen>
+</resources>

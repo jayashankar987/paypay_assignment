@@ -1,59 +1,60 @@
 package com.paypay.framework.exchange.currency.repository.currency
 
 import android.util.ArrayMap
+import android.util.Log
 import com.paypay.data.datasource.network.IExchangeNetworkSource
-import com.paypay.data.datasource.network.NetworkResponse.Error
-import com.paypay.data.datasource.network.NetworkResponse.NoUpdateRequired
-import com.paypay.data.datasource.network.NetworkResponse.Success
+import com.paypay.data.utils.ResultData
+import com.paypay.data.utils.ResultData.Error
+import com.paypay.data.utils.ResultData.NoUpdateRequired
+import com.paypay.data.utils.ResultData.Success
+import com.paypay.framework.BuildConfig
 import com.paypay.framework.exchange.currency.model.CurrencyData
 import com.paypay.framework.exchange.currency.persistence.IExchangeLocalSource
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CurrencyRepository @Inject constructor(
     private val exchangeNetworkSource: IExchangeNetworkSource, private val exchangeLocalSource: IExchangeLocalSource
 ) : ICurrencyRepository {
 
-    override suspend fun fetchCurrencyExchangeRates(): Flow<Map<String, CurrencyData>> {
-        return exchangeNetworkSource.getCurrenciesExchangeRates(appId = "", base = null)
-            .zip(exchangeNetworkSource.getCurrencies()) { rates, currencies ->
-                if (currencies is Success && rates is Success) {
-                    val mapData =
-                        extractMasterExchange(currencies as Success<Map<String, String>>,
-                            rates as Success<Map<String, Double>>)
-                    //exchangeLocalSource.saveCurrencyExchangeRates(mapData.values.toList())
-                    return@zip Success(mapData)
-                } else if (rates is NoUpdateRequired && currencies is NoUpdateRequired) {
-                    return@zip NoUpdateRequired
-                } else {
-                    return@zip Error("unable to fetch network data")
-                }
-            }.flatMapConcat { currencyData ->
-                if(currencyData is Success<*>) {
-                   return@flatMapConcat flow {  emit(currencyData.value as Map<String, CurrencyData>) }
-                } else if (currencyData is NoUpdateRequired) {
-                    return@flatMapConcat flow { emit(emptyMap()) }
-                }
-                return@flatMapConcat fetchCurrentExchangeRatesFromLocal()
-            }.flowOn(Dispatchers.IO)
+    override suspend fun fetchCurrencyExchangeRates(): ResultData<Map<String, CurrencyData>, out Exception> =
+        withContext(Dispatchers.IO) {
+            try {
+                val rates = exchangeNetworkSource.getCurrenciesExchangeRates(appId = BuildConfig.app_id, base = null)
+                val currencies = exchangeNetworkSource.getCurrencies()
 
-    }
+                Log.d("jaya", "jaya rates $rates")
+                Log.d("jaya", "jaya currencies $currencies")
 
-    override suspend fun fetchCurrentExchangeRatesFromLocal(): Flow<Map<String,CurrencyData>> {
-        return exchangeLocalSource.getAllCurrenciesWithExchange().map {
-            val mapData = HashMap<String, CurrencyData>()
-            for(currencyData in it) {
-                mapData[currencyData.currencyCode] = currencyData
+                if (currencies is Success<Map<String, String>> && rates is Success<Map<String, Double>>) {
+                    val mapData = extractMasterExchange(
+                        currencies, rates
+                    )
+                    exchangeLocalSource.saveCurrencyExchangeRates(mapData.values.toList())
+                    return@withContext Success(mapData)
+                } else if (currencies is Error || rates is Error) {
+                    return@withContext Error(Exception("Some Data"))
+                }
+            } catch (e: Exception) {
+                return@withContext Error(Exception("Some Data"))
             }
-            return@map mapData
+            return@withContext NoUpdateRequired
         }
-    }
+
+    override suspend fun fetchCurrentExchangeRatesFromLocal(): ResultData<HashMap<String, CurrencyData>, out Exception> =
+        withContext(Dispatchers.IO) {
+            try {
+                val result = exchangeLocalSource.getAllCurrenciesWithExchange()
+                val mapData = HashMap<String, CurrencyData>()
+                for (currencyData in result) {
+                    mapData[currencyData.currencyCode] = currencyData
+                }
+                return@withContext Success(mapData)
+            } catch (e: Exception) {
+                return@withContext Error(Exception("Error fetching local data"))
+            }
+        }
 
     private fun extractMasterExchange(
         currencies: Success<Map<String, String>>, rates: Success<Map<String, Double>>
@@ -61,7 +62,7 @@ class CurrencyRepository @Inject constructor(
         val currencyMap = ArrayMap<String, CurrencyData>()
         currencies.value.entries.forEach { entry ->
             val currencyData = CurrencyData(
-                currencyCode = entry.key, currencyName = entry.value, value = rates.value.getValue(entry.key)
+                currencyCode = entry.key, currencyName = entry.value, currencyValue = rates.value[entry.key]
             )
             currencyMap[entry.key] = currencyData
         }
