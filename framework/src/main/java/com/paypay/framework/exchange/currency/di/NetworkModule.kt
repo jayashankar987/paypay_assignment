@@ -1,7 +1,6 @@
 package com.paypay.framework.exchange.currency.di
 
 import android.content.Context
-import com.paypay.data.datasource.network.DataRetrofitClient
 import com.paypay.data.datasource.network.service.ExchangeService
 import com.paypay.framework.BuildConfig
 import com.paypay.framework.exchange.currency.network.CurrencyExchangeRetrofitClient
