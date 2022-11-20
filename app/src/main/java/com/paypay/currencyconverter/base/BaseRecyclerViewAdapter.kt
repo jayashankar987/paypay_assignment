@@ -2,7 +2,6 @@ package com.paypay.currencyconverter.base
 
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SpinnerAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 
@@ -30,13 +29,17 @@ abstract class BaseRecyclerViewAdapter<T>(private val data: MutableList<T> = mut
         super.onViewDetachedFromWindow(holder)
     }
 
-    fun addItems(data: List<T>) {
+    fun addItems(data: List<T>, forceRefresh: Boolean? = false) {
         callback.invoke(data).let {
-            val diffResult = DiffUtil.calculateDiff(it)
             this.data.clear()
             this.data.addAll(data)
-            diffResult.dispatchUpdatesTo(this)
-            notifyDataSetChanged()
+            if (forceRefresh == true) {
+                notifyDataSetChanged() //is a heavy op but has to go with this to avoid ui flicker
+            } else {
+                val diffResult = DiffUtil.calculateDiff(it)
+                diffResult.dispatchUpdatesTo(this)
+            }
+
         }
     }
 

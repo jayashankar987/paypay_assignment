@@ -1,50 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
+    android:layout_width="180dp"
+    android:layout_height="60dp"
+    android:background="@color/cardview_dark_background"
+    android:clipToPadding="true"
+    android:padding="@dimen/padding_normal"
     >
 
-    <androidx.cardview.widget.CardView
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_margin="10dp"
-        android:background="@color/cardview_dark_background"
-        android:clipToPadding="true"
-        android:padding="@dimen/padding_normal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         >
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            >
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/exchangeCode"
-            style="@style/Heading3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:padding="@dimen/padding_normal"
-            tools:text="INR"/>
+            android:padding="@dimen/padding_small"
+            tools:text="INR"
+            style="@style/Heading3"
+            />
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/exchangeName"
-                style="@style/desc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:padding="@dimen/padding_normal"
-                tools:text="Indian Rupee"/>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/exchangeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:padding="@dimen/padding_small"
+            tools:text="Indian Rupee"
+            style="@style/desc"
+            />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.cardview.widget.CardView>
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.cardview.widget.CardView>

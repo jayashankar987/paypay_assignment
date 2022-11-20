@@ -23,10 +23,6 @@ class CurrencyRepository @Inject constructor(
             try {
                 val rates = exchangeNetworkSource.getCurrenciesExchangeRates(appId = BuildConfig.app_id, base = null)
                 val currencies = exchangeNetworkSource.getCurrencies()
-
-                Log.d("jaya", "jaya rates $rates")
-                Log.d("jaya", "jaya currencies $currencies")
-
                 if (currencies is Success<Map<String, String>> && rates is Success<Map<String, Double>>) {
                     val mapData = extractMasterExchange(
                         currencies, rates
@@ -34,10 +30,10 @@ class CurrencyRepository @Inject constructor(
                     exchangeLocalSource.saveCurrencyExchangeRates(mapData.values.toList())
                     return@withContext Success(mapData)
                 } else if (currencies is Error || rates is Error) {
-                    return@withContext Error(Exception("Some Data"))
+                    return@withContext Error(Exception("Error in fetching currencies and currency rates"))
                 }
             } catch (e: Exception) {
-                return@withContext Error(Exception("Some Data"))
+                return@withContext Error(Exception("Unable to load data"))
             }
             return@withContext NoUpdateRequired
         }

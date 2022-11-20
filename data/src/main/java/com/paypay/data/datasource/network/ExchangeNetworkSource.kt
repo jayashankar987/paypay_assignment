@@ -15,8 +15,6 @@ class ExchangeNetworkSource constructor(
     ): ResultData<Map<String, Double>, out Exception> = withContext(Dispatchers.IO) {
         try {
             val response = exchangeService.getLatestRates(appId = appId, base = base)
-            println("called getCurrenciesExchangeRates")
-            println("jaya getCurrenciesExchangeRates $response")
             if (!isUpdateRequired(response)) {
                 return@withContext (ResultData.NoUpdateRequired)
             } else if (response.isSuccessful && response.body()?.rates != null) {
@@ -35,7 +33,6 @@ class ExchangeNetworkSource constructor(
     override suspend fun getCurrencies(): ResultData<Map<String, String>, out Exception> = withContext(Dispatchers.IO) {
         try {
             val response = exchangeService.getCurrencies()
-            println("jaya getCurrencies $response")
             val body = response.body()
             if (!isUpdateRequired(response)) {
                 return@withContext (ResultData.NoUpdateRequired)

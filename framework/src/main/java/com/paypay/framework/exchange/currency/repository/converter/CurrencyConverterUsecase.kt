@@ -1,6 +1,5 @@
 package com.paypay.framework.exchange.currency.repository.converter
 
-import android.util.Log
 import com.paypay.data.utils.ResultData
 import com.paypay.data.utils.ResultData.NoUpdateRequired
 import com.paypay.data.utils.ResultData.Success
@@ -8,24 +7,23 @@ import com.paypay.framework.exchange.currency.model.CurrencyData
 import com.paypay.framework.exchange.currency.repository.currency.ICurrencyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.TreeMap
 import javax.inject.Inject
 
 class CurrencyConverterUsecase @Inject constructor(private val currencyRepository: ICurrencyRepository) :
     ICurrencyConverterUsecase {
 
-    private val masterCurrency = HashMap<String, CurrencyData>()
+    private val masterCurrency = TreeMap<String, CurrencyData>()
 
     override suspend fun getConversionForAllCurrencies(base: String): List<CurrencyData> = withContext(Dispatchers.Default) {
         when (val result = currencyRepository.fetchCurrencyExchangeRates()) {
 
             is Success -> {
-                Log.d("jaya", "jaya Success ${result.value}")
                 masterCurrency.clear()
                 masterCurrency.putAll(result.value)
                 return@withContext generateCurrencyDataForBase(base = base)
             }
             is NoUpdateRequired -> {
-                Log.d("jaya", "jaya Noupdate Required")
                 return@withContext emptyList<CurrencyData>()
             }
             else -> {

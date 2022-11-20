@@ -9,7 +9,8 @@ import com.paypay.currencyconverter.R
 import com.paypay.currencyconverter.base.BaseRecyclerViewAdapter
 import com.paypay.currencyconverter.base.BaseViewHolder
 
-class CurrencyListAdapter : BaseRecyclerViewAdapter<Pair<String, String>>() {
+class CurrencyListAdapter(private val clickListener: (item: String, pos: Int) -> Unit) :
+    BaseRecyclerViewAdapter<Pair<String, String>>() {
 
     override val callback: (input: List<Pair<String, String>>) -> Callback
         get() = { inputData: List<Pair<String, String>> ->
@@ -31,8 +32,15 @@ class CurrencyListAdapter : BaseRecyclerViewAdapter<Pair<String, String>>() {
 
     override fun getViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.spinner_item_adapter, parent)
+        val view = inflater.inflate(R.layout.spinner_item_adapter, parent, false)
         return CurrencyExchangeViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        holder.itemView.setOnClickListener {
+            clickListener.invoke(getData()[position].first, position)
+        }
     }
 
     class CurrencyExchangeViewHolder(view: View) : BaseViewHolder(view) {
@@ -46,7 +54,7 @@ class CurrencyListAdapter : BaseRecyclerViewAdapter<Pair<String, String>>() {
         }
 
         override fun destroy() {
-
+            //destory any view items if needed
         }
     }
 }
