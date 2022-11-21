@@ -1,83 +1,102 @@
 package com.paypay.currencyconverter.videomodel
 
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.paypay.currencyconverter.videomodel.CurrenciesFetchState.Error
 import com.paypay.currencyconverter.videomodel.CurrenciesFetchState.Loading
 import com.paypay.currencyconverter.videomodel.CurrenciesFetchState.Success
 import com.paypay.framework.exchange.currency.model.CurrencyData
 import com.paypay.framework.exchange.currency.repository.converter.ICurrencyConverterUsecase
+import com.paypay.framework.exchange.currency.utils.FrameworkConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class ExchangeCurrencyViewModel
-@Inject constructor(private val currencyConverterUsecase: ICurrencyConverterUsecase) :
-    ViewModel() {
+@Inject constructor(
+    private val currencyConverterUsecase: ICurrencyConverterUsecase, private val sharedPreferences: SharedPreferences
+) : ViewModel() {
 
-    private var _uiStateFlow = MutableStateFlow<CurrenciesFetchState>(Success(data = emptyList()))
-    val uiState: StateFlow<CurrenciesFetchState> = _uiStateFlow
+    init {
+        fetchCurrencies()
+    }
 
-    private var lastRequestedTime = 0L
-    private val thresholdMinutes = 5L
-    private val time: TimeUnit = TimeUnit.MINUTES
+    private var _uiStateFlow: MutableStateFlow<CurrenciesFetchState>? = MutableStateFlow(Success(data = emptyList()))
+    val uiState: StateFlow<CurrenciesFetchState> = _uiStateFlow!!
+
+    private var _currenciesStateFlow: MutableStateFlow<CurrenciesFetchState>? = MutableStateFlow(Success(data = emptyList()))
+
+    private var previousBase: String = ""
 
     fun fetchCurrencyRates(base: String, input: Double) {
         viewModelScope.launch {
-            _uiStateFlow.value = Loading
+            _uiStateFlow?.value = Loading
+            val forceRefresh = isApiFetchNeeded()
             flow {
-                if (needsFetchingFromRepo()) {
-                    emit(currencyConverterUsecase.getConversionForAllCurrencies(base))
+                if (!forceRefresh && _currenciesStateFlow?.value is Success && previousBase == base) {
+                    emit((_currenciesStateFlow?.value as Success).data)
                 } else {
-                    emit(currencyConverterUsecase.fetchCachedCurrencyDetails(base))
+                    previousBase = base
+                    emit(currencyConverterUsecase.getConversionForAllCurrencies(base, forceRefresh))
                 }
-
             }.catch { exception ->
-                _uiStateFlow.value = CurrenciesFetchState.Error(throwable = exception)
+                _currenciesStateFlow?.value = Error(throwable = exception)
+                _uiStateFlow?.value = Error(throwable = exception)
             }.cancellable().collect { list ->
-                lastRequestedTime = System.currentTimeMillis()
-                list.forEach {
-                    it.currencyValue = input * it.currencyValue!!
+                if (forceRefresh) {
+                    _currenciesStateFlow?.value = Success(data = list)
                 }
-                _uiStateFlow.value = Success(data = list)
+                val result = mutableListOf<CurrencyData>()
+                list.forEach {
+                    result.add(
+                        CurrencyData(
+                            currencyCode = it.currencyCode,
+                            currencyValue = (it.currencyValue ?: 1.0) * input,
+                            currencyName = it.currencyName
+                        )
+                    )
+                }
+                _uiStateFlow?.value = Success(data = result)
+
             }
         }
     }
 
-    fun fetchCurrencies(base: String = "USD") {
+    private fun fetchCurrencies(base: String = "USD") {
         viewModelScope.launch {
-            _uiStateFlow.value = Loading
+            _uiStateFlow?.value = Loading
             flow {
-                if (needsFetchingFromRepo()) {
-                    emit(currencyConverterUsecase.getConversionForAllCurrencies(base))
-                } else {
-                    emit(currencyConverterUsecase.fetchCachedCurrencyDetails(base))
-                }
+                val forceRefresh = isApiFetchNeeded()
+                emit(currencyConverterUsecase.getConversionForAllCurrencies(base, forceRefresh))
 
             }.catch { throwable ->
-                _uiStateFlow.value = CurrenciesFetchState.Error(throwable = throwable)
+                _currenciesStateFlow?.value = Error(throwable = throwable)
+                _uiStateFlow?.value = Error(throwable = throwable)
             }.cancellable().collect { list ->
                 val currencies = mutableListOf<Pair<String, String>>()
                 list.forEach {
                     currencies.add(Pair(it.currencyCode, it.currencyName))
                 }
-                _uiStateFlow.value = CurrenciesFetchState.Init(data = currencies)
+                _currenciesStateFlow?.value = Success(data = list)
+                _uiStateFlow?.value = CurrenciesFetchState.Init(data = currencies)
             }
         }
     }
 
-    private fun needsFetchingFromRepo(): Boolean {
-        val currentRequestTime = System.currentTimeMillis()
-        if (currentRequestTime - lastRequestedTime > time.convert(thresholdMinutes, TimeUnit.MILLISECONDS)) {
-            return true
-        }
-        return false
+    private suspend fun isApiFetchNeeded(): Boolean = withContext(Dispatchers.IO) {
+        val threshold = TimeUnit.MINUTES.toMillis(30)
+        val lastSyncedTime = sharedPreferences.getLong(FrameworkConstants.PREF_LAST_SYNC_TIMESTAMP, 0L)
+        return@withContext (System.currentTimeMillis() - lastSyncedTime) > threshold
     }
 }
 

@@ -22,9 +22,9 @@ internal class DataRetrofitClientTest {
 
     @Test
     fun getDefaultRetrofit() {
-        every { dataRetrofitClient.getDefaultRetrofit(any(), any()) } returns any()
-        dataRetrofitClient.getDefaultRetrofit(any(), any())
-        io.mockk.verify(exactly = 1) { dataRetrofitClient.getDefaultRetrofit(any(), any()) }
+        every { dataRetrofitClient.getDefaultRetrofit(any()) } returns any()
+        dataRetrofitClient.getDefaultRetrofit(any())
+        io.mockk.verify(exactly = 1) { dataRetrofitClient.getDefaultRetrofit(any()) }
         confirmVerified(dataRetrofitClient)
     }
 }

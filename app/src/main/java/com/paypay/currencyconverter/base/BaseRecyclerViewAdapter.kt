@@ -32,9 +32,10 @@ abstract class BaseRecyclerViewAdapter<T>(private val data: MutableList<T> = mut
     fun addItems(data: List<T>) {
         callback.invoke(data).let {
             val diffResult = DiffUtil.calculateDiff(it)
-            diffResult.dispatchUpdatesTo(this)
             this.data.clear()
             this.data.addAll(data)
+            //diffResult.dispatchUpdatesTo(this)
+            notifyItemRangeChanged(0, data.size)
         }
     }
 

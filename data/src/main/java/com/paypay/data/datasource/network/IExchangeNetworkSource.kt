@@ -1,8 +1,8 @@
 package com.paypay.data.datasource.network
 
-import com.paypay.data.utils.ResultData
+import com.paypay.data.model.CurrencyResponse
 
 interface IExchangeNetworkSource {
-    suspend fun getCurrenciesExchangeRates(appId: String, base: String? = "USD"): ResultData<Map<String, Double>, out Exception>
-    suspend fun getCurrencies(): ResultData<Map<String, String>, out Exception>
+    suspend fun getCurrenciesExchangeRates(appId: String, base: String? = "USD"): CurrencyResponse
+    suspend fun getCurrencies(): Map<String, String>
 }

@@ -26,9 +26,9 @@ class ExchangeConverterListAdapter : BaseRecyclerViewAdapter<CurrencyData>() {
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val (code, value, name ) = getData()[oldItemPosition]
-                    val (codeNew, valueNew, nameNew) = inputData[newItemPosition]
-                    return  code == codeNew && valueNew == value && name == nameNew
+                    val (_, value, _) = getData()[oldItemPosition]
+                    val (_, valueNew, _) = inputData[newItemPosition]
+                    return  valueNew == value
                 }
             }
 

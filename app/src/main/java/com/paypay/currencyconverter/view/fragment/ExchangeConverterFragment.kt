@@ -1,12 +1,13 @@
 package com.paypay.currencyconverter.view.fragment
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -20,14 +21,22 @@ import com.paypay.currencyconverter.videomodel.ExchangeCurrencyViewModel
 import com.paypay.currencyconverter.view.adapter.CurrencyListAdapter
 import com.paypay.currencyconverter.view.adapter.ExchangeConverterListAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 @AndroidEntryPoint
-class ExchangeConverterFragment : Fragment() {
+class ExchangeConverterFragment : Fragment(), CoroutineScope {
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main
 
     private var _binding: FragmentFirstBinding? = null
     private val viewModel: ExchangeCurrencyViewModel by viewModels()
@@ -47,8 +56,33 @@ class ExchangeConverterFragment : Fragment() {
         selectedCurrency = code
         binding.currencySpinner.text = code
         if (binding.inputText.text?.isNotEmpty() == true) {
-            viewModel.fetchCurrencyRates(base = selectedCurrency, input = binding.inputText.text.toString().toDouble())
+            viewModel.fetchCurrencyRates(
+                base = selectedCurrency, input = binding.inputText.text.toString().toDouble()
+            )
         }
+    }
+
+    private val textWatcher: TextWatcher = object : TextWatcher {
+        private var previousInput: String = ""
+        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
+
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            val input = p0?.toString()?.trim() ?: ""
+            if (previousInput == input) {
+                return
+            }
+            previousInput = input
+            launch {
+                delay(300)
+                if (input != previousInput) {
+                    return@launch
+                }
+                val inputValue = if (input.isEmpty()) 1.0 else input.toDouble()
+                viewModel.fetchCurrencyRates(selectedCurrency, inputValue)
+            }
+        }
+
+        override fun afterTextChanged(p0: Editable?) = Unit
     }
 
     override fun onCreateView(
@@ -61,7 +95,6 @@ class ExchangeConverterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView()
-        viewModel.fetchCurrencies()
         flowJob?.cancel()
         flowJob = lifecycleScope.launchWhenStarted {
             viewModel.uiState.collectLatest { state ->
@@ -118,13 +151,7 @@ class ExchangeConverterFragment : Fragment() {
             filterPopup?.showAsDropDown(binding.currencySpinner)
         }
 
-        binding.inputText.addTextChangedListener {
-            it?.let {
-                if (it.isNotEmpty()) {
-                    viewModel.fetchCurrencyRates(base = selectedCurrency, input = it.toString().toDouble())
-                }
-            }
-        }
+        binding.inputText.addTextChangedListener(textWatcher)
 
         binding.retry.setOnClickListener {
             if (binding.inputText.text?.isNotEmpty() == true) {
