@@ -24,7 +24,9 @@ class CurrencyListAdapter(private val clickListener: (item: String, pos: Int) ->
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return getData()[oldItemPosition] == inputData[newItemPosition]
+                    val (code, name) = getData()[oldItemPosition]
+                    val (codeNew, nameNew) = getData()[newItemPosition]
+                    return  code == codeNew && name == nameNew
                 }
             }
 

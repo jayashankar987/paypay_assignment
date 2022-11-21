@@ -22,11 +22,13 @@ class ExchangeConverterListAdapter : BaseRecyclerViewAdapter<CurrencyData>() {
                 override fun getNewListSize(): Int = inputData.size
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return getData()[oldItemPosition] == inputData[newItemPosition]
+                    return getData()[oldItemPosition].currencyValue == inputData[newItemPosition].currencyValue
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return getData()[oldItemPosition] == inputData[newItemPosition]
+                    val (code, value, name ) = getData()[oldItemPosition]
+                    val (codeNew, valueNew, nameNew) = inputData[newItemPosition]
+                    return  code == codeNew && valueNew == value && name == nameNew
                 }
             }
 
