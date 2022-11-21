@@ -1,7 +1,6 @@
 package com.paypay.currencyconverter.view.fragment
 
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -71,7 +70,7 @@ class ExchangeConverterFragment : Fragment() {
                         binding.progressBar.visibility = View.GONE
                         binding.errorLayout.visibility = View.GONE
                         if (state.data.isNotEmpty()) {
-                            exchangeAdapter.addItems(data = state.data, forceRefresh = true)
+                            exchangeAdapter.addItems(data = state.data)
                         }
                         binding.recyclerView.visibility = View.VISIBLE
                     }
@@ -85,7 +84,7 @@ class ExchangeConverterFragment : Fragment() {
                     }
                     is CurrenciesFetchState.Init -> {
                         state.data?.let { currencies ->
-                            currenciesAdapter.addItems(data = currencies, forceRefresh = false)
+                            currenciesAdapter.addItems(data = currencies)
                         }
                     }
                 }
@@ -102,6 +101,7 @@ class ExchangeConverterFragment : Fragment() {
      */
     private fun initView() {
         binding.recyclerView.apply {
+            itemAnimator = null
             exchangeAdapter = ExchangeConverterListAdapter()
             adapter = exchangeAdapter
             layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)

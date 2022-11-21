@@ -29,17 +29,12 @@ abstract class BaseRecyclerViewAdapter<T>(private val data: MutableList<T> = mut
         super.onViewDetachedFromWindow(holder)
     }
 
-    fun addItems(data: List<T>, forceRefresh: Boolean? = false) {
+    fun addItems(data: List<T>) {
         callback.invoke(data).let {
+            val diffResult = DiffUtil.calculateDiff(it)
+            diffResult.dispatchUpdatesTo(this)
             this.data.clear()
             this.data.addAll(data)
-            if (forceRefresh == true) {
-                notifyDataSetChanged() //is a heavy op but has to go with this to avoid ui flicker
-            } else {
-                val diffResult = DiffUtil.calculateDiff(it)
-                diffResult.dispatchUpdatesTo(this)
-            }
-
         }
     }
 
