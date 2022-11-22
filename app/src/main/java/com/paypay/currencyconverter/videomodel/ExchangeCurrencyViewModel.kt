@@ -94,7 +94,7 @@ class ExchangeCurrencyViewModel
     }
 
     private suspend fun isApiFetchNeeded(): Boolean = withContext(Dispatchers.IO) {
-        val threshold = TimeUnit.MINUTES.toMillis(0)
+        val threshold = TimeUnit.MINUTES.toMillis(30)
         val lastSyncedTime = sharedPreferences.getLong(FrameworkConstants.PREF_LAST_SYNC_TIMESTAMP, 0L)
         return@withContext (System.currentTimeMillis() - lastSyncedTime) > threshold
     }
