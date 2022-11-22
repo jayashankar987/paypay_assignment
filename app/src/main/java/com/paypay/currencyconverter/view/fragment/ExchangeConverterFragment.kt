@@ -23,7 +23,6 @@ import com.paypay.currencyconverter.view.adapter.ExchangeConverterListAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -45,7 +44,6 @@ class ExchangeConverterFragment : Fragment(), CoroutineScope {
     private lateinit var currenciesAdapter: CurrencyListAdapter
     private var selectedCurrency = "USD"
     private var filterPopup: PopupWindow? = null
-    private var flowJob: Job? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -95,8 +93,7 @@ class ExchangeConverterFragment : Fragment(), CoroutineScope {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView()
-        flowJob?.cancel()
-        flowJob = lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenStarted {
             viewModel.uiState.collectLatest { state ->
                 when (state) {
                     is CurrenciesFetchState.Success -> {
@@ -182,14 +179,12 @@ class ExchangeConverterFragment : Fragment(), CoroutineScope {
     }
 
     override fun onStop() {
-        flowJob?.cancel()
         filterPopup = null
         super.onStop()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        flowJob = null
         _binding = null
     }
 }

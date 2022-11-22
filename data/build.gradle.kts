@@ -10,7 +10,6 @@ java {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.8.7")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
@@ -25,10 +24,18 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.2")
     testImplementation("io.mockk:mockk-agent:1.13.2")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
-
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
-
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
+
+
+
+    testImplementation("org.amshove.kluent:kluent-android:1.68")
+    testImplementation("app.cash.turbine:turbine:0.11.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.8.2")
 }
 
 tasks.test {

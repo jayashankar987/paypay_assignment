@@ -27,3 +27,14 @@ suspend inline fun <R> runSuspendCatching(
         return@withContext ResultData.Error(DataFetchError(AppException.mapper(e)))
     }
 }
+
+//extensions for success
+inline fun <T, E : ResultError> ResultData<T, E>.onSuccess(success: (value: T) -> Unit): ResultData<T, E> =
+    apply { getOrNull()?.let(success) }
+
+//extensions for error
+inline fun <T, E : ResultError> ResultData<T, E>.onError(error: (error: E) -> Unit): ResultData<T, E> =
+    apply { errorOrNull()?.let(error) }
+
+fun <V, E : ResultError> ResultData<V, E>.getOrNull(): V? = (this as? ResultData.Success)?.value
+fun <V, E : ResultError> ResultData<V, E>.errorOrNull(): E? = (this as? ResultData.Error)?.e

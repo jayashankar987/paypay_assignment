@@ -11,8 +11,8 @@ import com.paypay.framework.exchange.currency.utils.FrameworkConstants.TableName
 interface IExchangeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCurrencyExchangeRates(vararg currencyData: CurrencyData)
+    fun insertCurrencyExchangeRates(vararg currencyData: CurrencyData)
 
     @Query("SELECT * FROM ${TableName.CURRENCY_EXCHANGE_ENTITY}")
-    suspend fun getAllCurrencyExchangeRates(): List<CurrencyData>
+    fun getAllCurrencyExchangeRates(): List<CurrencyData>
 }

@@ -68,4 +68,11 @@ dependencies {
 
   implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
   implementation("com.squareup.moshi:moshi:1.14.0")
+  implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+
+  testImplementation("io.mockk:mockk:1.13.2")
+  testImplementation("io.mockk:mockk-agent:1.13.2")
+  testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
 }
