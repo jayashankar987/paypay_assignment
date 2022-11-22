@@ -24,10 +24,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.2")
     testImplementation("io.mockk:mockk-agent:1.13.2")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
-
 
 
     testImplementation("org.amshove.kluent:kluent-android:1.68")

@@ -1,6 +1,6 @@
 package com.paypay.framework.exchange.currency.persistence
 
-import com.paypay.framework.exchange.currency.CoroutineTestExtension
+import com.nhaarman.mockitokotlin2.any
 import com.paypay.framework.exchange.currency.model.CurrencyData
 import com.paypay.framework.exchange.currency.persistence.dao.IExchangeDao
 import io.mockk.MockKAnnotations
@@ -8,19 +8,16 @@ import io.mockk.coEvery
 import io.mockk.confirmVerified
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
-import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(CoroutineTestExtension::class)
 class ExchangeLocalSourceTest {
 
     @MockK
     lateinit var exchangeDao: IExchangeDao
 
-    lateinit var exchangeLocalSource: IExchangeLocalSource
+    private lateinit var exchangeLocalSource: IExchangeLocalSource
     private val exchangeData = listOf(
         CurrencyData(currencyName = "xyz", currencyCode = "XYZ", currencyValue = 9.04),
         CurrencyData(currencyName = "abc", currencyCode = "ABC", currencyValue = 3.04),
@@ -35,19 +32,32 @@ class ExchangeLocalSourceTest {
 
     @Test
     fun saveCurrencyExchangeRates() = runTest {
+        coEvery { exchangeDao.insertCurrencyExchangeRates(any()) } returns Unit
+
+        exchangeLocalSource.saveCurrencyExchangeRates(any())
+        verify { exchangeDao.insertCurrencyExchangeRates(any()) }
+        confirmVerified(exchangeData)
+    }
+
+    @Test
+    fun getAllCurrenciesWithExchange() = runTest {
         coEvery {
-            exchangeDao.insertCurrencyExchangeRates(any())
-        } returns Unit
-        runBlocking {
-            exchangeLocalSource.saveCurrencyExchangeRates(exchangeData)
-        }
+            exchangeDao.getAllCurrencyExchangeRates()
+        } returns exchangeData
+
+        exchangeLocalSource.getAllCurrenciesWithExchange()
         verify {
-            exchangeDao.insertCurrencyExchangeRates(any())
+            exchangeDao.getAllCurrencyExchangeRates()
         }
         confirmVerified(exchangeDao)
     }
 
     @Test
-    fun getAllCurrenciesWithExchange() {
+    fun `verify if empty list is return`() = runTest {
+        coEvery { exchangeDao.getAllCurrencyExchangeRates() } returns emptyList()
+        val actual = exchangeLocalSource.getAllCurrenciesWithExchange()
+        assert(actual.isEmpty())
+        verify { exchangeDao.getAllCurrencyExchangeRates() }
+        confirmVerified(exchangeDao)
     }
 }

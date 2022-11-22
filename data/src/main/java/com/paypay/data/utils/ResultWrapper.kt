@@ -29,11 +29,11 @@ suspend inline fun <R> runSuspendCatching(
 }
 
 //extensions for success
-inline fun <T, E : ResultError> ResultData<T, E>.onSuccess(success: (value: T) -> Unit): ResultData<T, E> =
+suspend inline fun <T, E : ResultError> ResultData<T, E>.onSuccess(success: (value: T) -> Unit): ResultData<T, E> =
     apply { getOrNull()?.let(success) }
 
 //extensions for error
-inline fun <T, E : ResultError> ResultData<T, E>.onError(error: (error: E) -> Unit): ResultData<T, E> =
+suspend inline fun <T, E : ResultError> ResultData<T, E>.onError(error: (error: E) -> Unit): ResultData<T, E> =
     apply { errorOrNull()?.let(error) }
 
 fun <V, E : ResultError> ResultData<V, E>.getOrNull(): V? = (this as? ResultData.Success)?.value

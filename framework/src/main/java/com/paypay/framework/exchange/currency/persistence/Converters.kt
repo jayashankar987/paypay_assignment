@@ -7,7 +7,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 
 @ProvidedTypeConverter
-class Converters constructor(private val moshi: Moshi) {
+class Converters constructor(moshi: Moshi) {
 
     private val membersType = Types.newParameterizedType(List::class.java, CurrencyData::class.java)
     private val membersAdapter = moshi.adapter<List<CurrencyData>>(membersType)
