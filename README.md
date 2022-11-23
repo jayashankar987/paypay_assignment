@@ -29,7 +29,7 @@
       This module has the UI and ViewModel needed to interact with `:framework` module and UI for the end user.
       
 # Data Flow Diagram
-![Blank board](https://user-images.githubusercontent.com/1208007/203551500-563371e9-945f-448c-a729-631ba3ad75d3.png)
+![Blank board (1)](https://user-images.githubusercontent.com/1208007/203561009-177929bc-9944-4b9d-a383-a9ff51cd20d5.png)
 
 # Installation Guide:
 Import Project in Android Studio and make sure SDK, Kotlin, JDK are available ready for setup and run `app`
