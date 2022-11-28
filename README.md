@@ -2,7 +2,7 @@
 
 ## Requirement:
 
-  ### Exchange Current App which has an 
+  ### Exchange Current App with provided backend api
   * Input field which accepts decimal valu
   * Dropdown to select the current for the input decimal
   * List to display all the converted list for the input to vairious supported currencies inside API
